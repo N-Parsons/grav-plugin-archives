@@ -93,6 +93,10 @@ class ArchivesPlugin extends Plugin
      */
     public function onTwigSiteVariables()
     {
+        // Make this plugin object available
+        $this->grav['twig']->twig_vars['archives_plugin'] = $this;
+
+        // Proceed
         $page = $this->grav['page'];
         // If a page exists merge the configs
         if ($page) {
@@ -106,10 +110,6 @@ class ArchivesPlugin extends Plugin
 
         $pages = $this->grav['pages'];
 
-        // Get current datetime
-        $start_date = time();
-
-        $archives = array();
 
         // get the plugin filters setting
         $filters = (array) $this->config->get('plugins.archives.filters');
@@ -147,6 +147,17 @@ class ArchivesPlugin extends Plugin
             }
         }
 
+        $this->grav['twig']->twig_vars['archives_show_count'] = $this->config->get('plugins.archives.show_count');
+        $this->grav['twig']->twig_vars['archives_data'] = $this->getArchiveData($collection);
+    }
+
+    public function getArchiveData($collection)
+    {
+        // Get current datetime
+        $start_date = time();
+
+        $archives = array();
+
         // reorder the collection based on settings
         $collection = $collection->order($this->config->get('plugins.archives.order.by'), $this->config->get('plugins.archives.order.dir'))->published();
         $date_format = $this->config->get('plugins.archives.date_display_format');
@@ -160,10 +171,6 @@ class ArchivesPlugin extends Plugin
         }
 
         // slice the array to the limit you want
-        $archives = array_slice($archives, 0, intval($this->config->get('plugins.archives.limit')), is_string(reset($archives)) ? false : true );
-
-        // add the archives_start date to the twig variables
-        $this->grav['twig']->twig_vars['archives_show_count'] = $this->config->get('plugins.archives.show_count');
-        $this->grav['twig']->twig_vars['archives_data'] = $archives;
+        return array_slice($archives, 0, intval($this->config->get('plugins.archives.limit')), is_string(reset($archives)) ? false : true );
     }
 }
